@@ -1,0 +1,112 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Institut Pí Custom Styles */
+
+/* CSS Variables (Design Tokens) */
+:root {
+	--pii-cyan: rgb(39, 130, 175);
+	--grey-800: rgb(31, 31, 31);
+	--grey-50: rgb(248, 249, 250);
+	--grey-100: #f3f4f6;
+	--grey-200: #e5e7eb;
+	--grey-600: #4b5563;
+	--white: #ffffff;
+	--black: #000000;
+	--success: #10b981;
+	--warning: #f59e0b;
+	--error: #ef4444;
+	--info: var(--pii-cyan);
+}
+
+/* Font Faces - will be loaded from CDN or local files */
+@font-face {
+	font-family: 'Bebas Neue';
+	src: url('/fonts/bebas-neue/BebasNeue-Regular.woff2') format('woff2');
+	font-weight: 400;
+	font-style: normal;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: 'Source Serif 4';
+	src: url('/fonts/source-serif/SourceSerif4-Regular.woff2') format('woff2');
+	font-weight: 400;
+	font-style: normal;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: 'Source Serif 4';
+	src: url('/fonts/source-serif/SourceSerif4-Bold.woff2') format('woff2');
+	font-weight: 700;
+	font-style: normal;
+	font-display: swap;
+}
+
+/* Global Styles */
+* {
+	box-sizing: border-box;
+}
+
+html {
+	scroll-behavior: smooth;
+}
+
+body {
+	@apply font-serif text-grey-800 bg-grey-50;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+}
+
+/* Typography */
+h1,
+h2 {
+	@apply font-bebas uppercase tracking-wide;
+}
+
+h3,
+h4,
+h5,
+h6 {
+	@apply font-serif font-bold;
+}
+
+/* Utility Classes */
+@layer components {
+	.btn-primary {
+		@apply bg-pii-cyan hover:bg-pii-cyan/90 text-white font-sans uppercase tracking-wide px-6 py-3 rounded transition-colors;
+	}
+
+	.btn-secondary {
+		@apply bg-grey-800 hover:bg-grey-800/90 text-white font-sans uppercase tracking-wide px-6 py-3 rounded transition-colors;
+	}
+
+	.btn-outline {
+		@apply border-2 border-pii-cyan text-pii-cyan hover:bg-pii-cyan hover:text-white font-sans uppercase tracking-wide px-6 py-3 rounded transition-all;
+	}
+
+	.card {
+		@apply bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow;
+	}
+
+	.container-custom {
+		@apply mx-auto px-4 max-w-5xl;
+	}
+}
+
+/* Mobile-First Responsive Touch Targets */
+button,
+a {
+	min-height: 44px;
+	min-width: 44px;
+}
+
+@media (min-width: 768px) {
+	button,
+	a {
+		min-height: auto;
+		min-width: auto;
+	}
+}
