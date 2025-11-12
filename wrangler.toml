@@ -1,0 +1,49 @@
+# Cloudflare Workers Configuration
+name = "rezervace-institut"
+compatibility_date = "2024-01-01"
+main = "workers/index.ts"
+
+# Environment variables (non-sensitive)
+[vars]
+SITE_URL = "https://akce.institutpi.cz"
+MAIN_SITE_URL = "https://www.institutpi.cz"
+BANK_ACCOUNT = "2002103571/2010"
+ADMIN_EMAIL = "patrick.zandl@institutpi.cz"
+
+# D1 Database binding
+[[d1_databases]]
+binding = "DB"
+database_name = "institutpi-events"
+database_id = "to-be-created" # Replace with actual database ID after creation
+
+# R2 Bucket for images
+[[r2_buckets]]
+binding = "IMAGES"
+bucket_name = "institutpi-images"
+
+# Queue for email sending
+[[queues.producers]]
+binding = "EMAIL_QUEUE"
+queue = "email-queue"
+
+[[queues.consumers]]
+queue = "email-queue"
+max_batch_size = 10
+max_batch_timeout = 30
+
+# Cron triggers for reminders
+[triggers]
+crons = ["0 * * * *"] # Run every hour
+
+# Routes
+[route]
+pattern = "akce.institutpi.cz/api/*"
+zone_name = "institutpi.cz"
+
+# Development configuration
+[env.development]
+name = "rezervace-institut-dev"
+
+# Production configuration
+[env.production]
+name = "rezervace-institut-prod"
