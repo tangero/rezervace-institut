@@ -14,9 +14,29 @@ interface JWTPayload {
 }
 
 // Simple JWT implementation (for production, use jsonwebtoken library)
+// Using Web APIs only (compatible with Cloudflare Workers)
+function arrayBufferToBase64(buffer: ArrayBuffer): string {
+	const bytes = new Uint8Array(buffer);
+	let binary = '';
+	for (let i = 0; i < bytes.length; i++) {
+		binary += String.fromCharCode(bytes[i]);
+	}
+	return btoa(binary);
+}
+
+function base64ToArrayBuffer(base64: string): ArrayBuffer {
+	const binary = atob(base64);
+	const bytes = new Uint8Array(binary.length);
+	for (let i = 0; i < binary.length; i++) {
+		bytes[i] = binary.charCodeAt(i);
+	}
+	return bytes.buffer;
+}
+
 function base64urlEncode(str: string): string {
-	return Buffer.from(str)
-		.toString('base64')
+	const encoder = new TextEncoder();
+	const data = encoder.encode(str);
+	return arrayBufferToBase64(data)
 		.replace(/\+/g, '-')
 		.replace(/\//g, '_')
 		.replace(/=/g, '');
@@ -24,7 +44,13 @@ function base64urlEncode(str: string): string {
 
 function base64urlDecode(str: string): string {
 	str = str.replace(/-/g, '+').replace(/_/g, '/');
-	return Buffer.from(str, 'base64').toString();
+	// Add padding if needed
+	while (str.length % 4) {
+		str += '=';
+	}
+	const buffer = base64ToArrayBuffer(str);
+	const decoder = new TextDecoder();
+	return decoder.decode(buffer);
 }
 
 async function hmacSign(data: string, secret: string): Promise<string> {
@@ -37,7 +63,11 @@ async function hmacSign(data: string, secret: string): Promise<string> {
 		['sign']
 	);
 	const signature = await crypto.subtle.sign('HMAC', key, encoder.encode(data));
-	return base64urlEncode(Buffer.from(signature).toString('base64'));
+	// Convert ArrayBuffer to base64url directly
+	return arrayBufferToBase64(signature)
+		.replace(/\+/g, '-')
+		.replace(/\//g, '_')
+		.replace(/=/g, '');
 }
 
 /**
@@ -151,7 +181,11 @@ export async function verifyPassword(password: string, hash: string): Promise<bo
 	const encoder = new TextEncoder();
 	const data = encoder.encode(password);
 	const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-	const computedHash = Buffer.from(hashBuffer).toString('hex');
+
+	// Convert ArrayBuffer to hex string using Web APIs only
+	const hashArray = Array.from(new Uint8Array(hashBuffer));
+	const computedHash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+
 	return computedHash === hash;
 }
 
@@ -163,7 +197,10 @@ export async function hashPassword(password: string): Promise<string> {
 	const encoder = new TextEncoder();
 	const data = encoder.encode(password);
 	const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-	return Buffer.from(hashBuffer).toString('hex');
+
+	// Convert ArrayBuffer to hex string using Web APIs only
+	const hashArray = Array.from(new Uint8Array(hashBuffer));
+	return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
 /**
