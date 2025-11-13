@@ -19,12 +19,30 @@ export const GET: RequestHandler = async ({ params, platform }) => {
 		const db = platform?.env?.DB;
 
 		if (!db) {
-			// Development fallback
-			console.warn('D1 database not available, simulating confirmation');
-			console.log(`Confirmation simulated for token: ${token}`);
+			console.error('❌ D1 database not available - cannot confirm registration!');
+			console.error('Debug info:', {
+				token,
+				platform: platform ? 'exists' : 'missing',
+				env: platform?.env ? 'exists' : 'missing',
+				DB: platform?.env?.DB ? 'exists' : 'missing',
+				availableBindings: platform?.env ? Object.keys(platform.env) : []
+			});
+			console.error('💡 Fix: Run database setup script: cd database && ./setup-db.sh');
 
-			// Redirect to confirmation page
-			throw redirect(303, `/potvrzeni?success=true&debug=true`);
+			return json(
+				{
+					error: 'Database not configured',
+					message: 'Potvrzení registrace není momentálně dostupné. D1 database není nakonfigurována.',
+					debug: {
+						token,
+						platform: !!platform,
+						env: !!platform?.env,
+						dbBinding: !!platform?.env?.DB,
+						availableBindings: platform?.env ? Object.keys(platform.env) : []
+					}
+				},
+				{ status: 503 }
+			);
 		}
 
 		// Find registration by confirmation token

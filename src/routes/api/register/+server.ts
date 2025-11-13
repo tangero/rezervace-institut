@@ -42,24 +42,33 @@ export const POST: RequestHandler = async ({ request, platform }) => {
 		const db = platform?.env?.DB;
 
 		if (!db) {
-			// Development fallback - simulate successful registration
-			console.warn('D1 database not available, simulating registration');
-			const confirmationToken = generateConfirmationToken();
-
-			// In production, this would send an email
-			console.log(`Registration simulated for ${email} to event ${eventId}`);
-			console.log(`Confirmation token: ${confirmationToken}`);
-
-			return json({
-				success: true,
-				message: 'Registrace byla úspěšná. Zkontrolujte svůj email pro potvrzení.',
-				registrationId: generateRegistrationId(),
-				// In dev, return token for testing (don't do this in production!)
-				debug: {
-					confirmationToken,
-					confirmationUrl: `/api/confirm/${confirmationToken}`
-				}
+			console.error('❌ D1 database not available - cannot create registration!');
+			console.error('Debug info:', {
+				email,
+				eventId,
+				platform: platform ? 'exists' : 'missing',
+				env: platform?.env ? 'exists' : 'missing',
+				DB: platform?.env?.DB ? 'exists' : 'missing',
+				availableBindings: platform?.env ? Object.keys(platform.env) : []
 			});
+			console.error('💡 Fix: Run database setup script: cd database && ./setup-db.sh');
+
+			return json(
+				{
+					error: 'Database not configured',
+					message:
+						'Registrace není momentálně dostupná. D1 database není nakonfigurována.',
+					debug: {
+						email,
+						eventId,
+						platform: !!platform,
+						env: !!platform?.env,
+						dbBinding: !!platform?.env?.DB,
+						availableBindings: platform?.env ? Object.keys(platform.env) : []
+					}
+				},
+				{ status: 503 }
+			);
 		}
 
 		// Check if event exists and is published

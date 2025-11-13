@@ -13,79 +13,31 @@ export const GET: RequestHandler = async ({ platform, url }) => {
 		const db = platform?.env?.DB;
 
 		if (!db) {
-			// Development fallback - return dummy data
-			console.warn('D1 database not available, using dummy data');
-
-			const upcomingEvents = [
-				{
-					id: 'evt_001',
-					slug: 'debata-o-budoucnosti-eu',
-					title: 'Debata o budoucnosti Evropské unie',
-					short_description:
-						'Připojte se k nám na diskusi o klíčových výzvách, kterým EU čelí v následujících letech.',
-					event_date: '2025-12-15',
-					start_time: '18:00',
-					venue_name: 'Pirátské centrum Praha',
-					venue_address: 'Na Moráni 360/3, Praha 2',
-					image_url: 'https://placehold.co/800x450/2782AF/FFFFFF?text=EU+Debata',
-					image_alt: 'Debata o EU',
-					max_capacity: 50,
-					current_registrations: 35
-				},
-				{
-					id: 'evt_002',
-					slug: 'workshop-digitalizace',
-					title: 'Workshop: Digitalizace veřejné správy',
-					short_description: 'Praktický workshop zaměřený na možnosti digitalizace veřejné správy.',
-					event_date: '2025-12-20',
-					start_time: '14:00',
-					venue_name: 'Impact Hub Praha',
-					venue_address: 'Drtinova 10, Praha 5',
-					image_url: 'https://placehold.co/800x450/2782AF/FFFFFF?text=Digitalizace',
-					image_alt: 'Workshop digitalizace',
-					max_capacity: 30,
-					current_registrations: 8
-				},
-				{
-					id: 'evt_003',
-					slug: 'klimaticka-politika-cr',
-					title: 'Klimatická politika ČR v roce 2026',
-					short_description:
-						'Jaké jsou výzvy a příležitosti české klimatické politiky? Diskutujeme s experty.',
-					event_date: '2026-01-10',
-					start_time: '19:00',
-					venue_name: 'Kampus Hybernská',
-					venue_address: 'Hybernská 4, Praha 1',
-					image_url: 'https://placehold.co/800x450/2782AF/FFFFFF?text=Klima',
-					image_alt: 'Klimatická politika',
-					max_capacity: 80,
-					current_registrations: 42
-				}
-			];
-
-			const archiveEvents = [
-				{
-					id: 'evt_004',
-					slug: 'archiv-vzdelavani-21-stoleti',
-					title: 'Vzdělávání v 21. století',
-					short_description:
-						'Již proběhlá akce o inovacích ve vzdělávání a přípravě mladých lidí na výzvy budoucnosti.',
-					event_date: '2024-11-01',
-					start_time: '16:00',
-					venue_name: 'Pedagogická fakulta UK',
-					venue_address: 'Školní 123, Praha 6',
-					image_url: 'https://placehold.co/800x450/4B5563/FFFFFF?text=Vzd%C4%9Bl%C3%A1v%C3%A1n%C3%AD',
-					image_alt: 'Vzdělávání v 21. století',
-					max_capacity: 100,
-					current_registrations: 85
-				}
-			];
-
-			const events = archive ? archiveEvents : upcomingEvents;
-			return json({
-				events,
-				total: events.length
+			console.error('❌ D1 database not available!');
+			console.error('Debug info:', {
+				platform: platform ? 'exists' : 'missing',
+				env: platform?.env ? 'exists' : 'missing',
+				DB: platform?.env?.DB ? 'exists' : 'missing',
+				availableBindings: platform?.env ? Object.keys(platform.env) : []
 			});
+			console.error(
+				'💡 Fix: Run database setup script: cd database && ./setup-db.sh'
+			);
+
+			return json(
+				{
+					error: 'Database not configured',
+					message:
+						'D1 database není nakonfigurována. Spusťte: cd database && ./setup-db.sh',
+					debug: {
+						platform: !!platform,
+						env: !!platform?.env,
+						dbBinding: !!platform?.env?.DB,
+						availableBindings: platform?.env ? Object.keys(platform.env) : []
+					}
+				},
+				{ status: 503 }
+			);
 		}
 
 		// Get today's date in ISO format
