@@ -1,51 +1,11 @@
 <script lang="ts">
 	import EventCard from '$lib/components/EventCard.svelte';
+	import type { PageData } from './$types';
 
-	// Dummy data - will be replaced with actual API call
-	const events = [
-		{
-			slug: 'debata-o-budoucnosti-eu',
-			title: 'Debata o budoucnosti Evropské unie',
-			short_description:
-				'Připojte se k nám na diskusi o klíčových výzvách, kterým EU čelí v následujících letech. S hosty z akademické sféry a politiky.',
-			event_date: '2025-12-15',
-			start_time: '18:00',
-			venue_name: 'Pirátské centrum Praha',
-			venue_address: 'Na Moráni 360/3, Praha 2',
-			image_url: 'https://placehold.co/800x450/2782AF/FFFFFF?text=EU+Debata',
-			image_alt: 'Debata o EU',
-			max_capacity: 50,
-			current_registrations: 35
-		},
-		{
-			slug: 'workshop-digitalizace',
-			title: 'Workshop: Digitalizace veřejné správy',
-			short_description:
-				'Praktický workshop zaměřený na možnosti digitalizace veřejné správy. Sdílení best practices a diskuse o překážkách.',
-			event_date: '2025-12-20',
-			start_time: '14:00',
-			venue_name: 'Impact Hub Praha',
-			venue_address: 'Drtinova 10, Praha 5',
-			image_url: 'https://placehold.co/800x450/2782AF/FFFFFF?text=Digitalizace',
-			image_alt: 'Workshop digitalizace',
-			max_capacity: 30,
-			current_registrations: 8
-		},
-		{
-			slug: 'klimaticka-politika-cr',
-			title: 'Klimatická politika ČR v roce 2026',
-			short_description:
-				'Jaké jsou výzvy a příležitosti české klimatické politiky? Diskutujeme s experty o realistických cestách k uhlíkové neutralitě.',
-			event_date: '2026-01-10',
-			start_time: '19:00',
-			venue_name: 'Kampus Hybernská',
-			venue_address: 'Hybernská 4, Praha 1',
-			image_url: 'https://placehold.co/800x450/2782AF/FFFFFF?text=Klima',
-			image_alt: 'Klimatická politika',
-			max_capacity: 80,
-			current_registrations: 42
-		}
-	];
+	export let data: PageData;
+
+	// Events are now loaded from the API via +page.server.ts
+	$: events = data.events || [];
 </script>
 
 <svelte:head>
