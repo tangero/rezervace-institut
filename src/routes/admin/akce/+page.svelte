@@ -1,49 +1,9 @@
 <script lang="ts">
-	// Admin - List of all events
-	// Dummy data - will be replaced with API call
+	import type { PageData } from './$types';
 
-	const events = [
-		{
-			id: 'evt_001',
-			slug: 'debata-o-budoucnosti-eu',
-			title: 'Debata o budoucnosti Evropské unie',
-			date: '2025-12-15',
-			time: '18:00',
-			registrations: 35,
-			capacity: 50,
-			status: 'published'
-		},
-		{
-			id: 'evt_002',
-			slug: 'workshop-digitalizace',
-			title: 'Workshop: Digitalizace veřejné správy',
-			date: '2025-12-20',
-			time: '14:00',
-			registrations: 8,
-			capacity: 30,
-			status: 'published'
-		},
-		{
-			id: 'evt_003',
-			slug: 'klimaticka-politika-cr',
-			title: 'Klimatická politika ČR v roce 2026',
-			date: '2026-01-10',
-			time: '19:00',
-			registrations: 42,
-			capacity: 80,
-			status: 'published'
-		},
-		{
-			id: 'evt_004',
-			slug: 'bezpecnost-v-kyberprostoru',
-			title: 'Bezpečnost v kyberprostoru',
-			date: '2026-02-05',
-			time: '17:30',
-			registrations: 0,
-			capacity: 60,
-			status: 'draft'
-		}
-	];
+	export let data: PageData;
+
+	$: events = data.events || [];
 
 	function getStatusBadge(status: string) {
 		switch (status) {
@@ -60,11 +20,17 @@
 		}
 	}
 
-	function getOccupancyColor(registrations: number, capacity: number) {
+	function getOccupancyColor(registrations: number, capacity: number | null) {
+		if (!capacity) return 'text-grey-600';
 		const percentage = (registrations / capacity) * 100;
 		if (percentage >= 90) return 'text-error';
 		if (percentage >= 70) return 'text-warning';
 		return 'text-success';
+	}
+
+	function getOccupancyPercentage(registrations: number, capacity: number | null): number {
+		if (!capacity) return 0;
+		return Math.min((registrations / capacity) * 100, 100);
 	}
 </script>
 
@@ -140,17 +106,26 @@
 								</a>
 							</td>
 							<td class="px-6 py-4 font-sans text-sm text-grey-600">
-								{event.date}<br />
-								<span class="text-xs">{event.time}</span>
+								{new Date(event.event_date).toLocaleDateString('cs-CZ')}<br />
+								<span class="text-xs">{event.start_time}</span>
 							</td>
 							<td class="px-6 py-4 font-sans text-sm">
-								<span class={getOccupancyColor(event.registrations, event.capacity)}>
-									<strong>{event.registrations}</strong> / {event.capacity}
+								<span
+									class={getOccupancyColor(
+										event.current_registrations,
+										event.max_capacity
+									)}
+								>
+									<strong>{event.current_registrations}</strong> / {event.max_capacity ||
+										'∞'}
 								</span>
 								<div class="w-full bg-grey-200 rounded-full h-1.5 mt-1">
 									<div
 										class="bg-pii-cyan h-1.5 rounded-full"
-										style="width: {(event.registrations / event.capacity) * 100}%"
+										style="width: {getOccupancyPercentage(
+											event.current_registrations,
+											event.max_capacity
+										)}%"
 									></div>
 								</div>
 							</td>
@@ -241,7 +216,7 @@
 								{event.title}
 							</a>
 							<p class="text-grey-600 font-sans text-sm">
-								{event.date} • {event.time}
+								{new Date(event.event_date).toLocaleDateString('cs-CZ')} • {event.start_time}
 							</p>
 						</div>
 						<span class="px-2 py-1 rounded-full text-xs font-sans font-bold {badge.color}">
@@ -252,14 +227,22 @@
 					<div class="mb-3">
 						<div class="flex items-center justify-between mb-1">
 							<span class="font-sans text-sm text-grey-600">Registrace</span>
-							<span class="font-sans text-sm {getOccupancyColor(event.registrations, event.capacity)}">
-								<strong>{event.registrations}</strong> / {event.capacity}
+							<span
+								class="font-sans text-sm {getOccupancyColor(
+									event.current_registrations,
+									event.max_capacity
+								)}"
+							>
+								<strong>{event.current_registrations}</strong> / {event.max_capacity || '∞'}
 							</span>
 						</div>
 						<div class="w-full bg-grey-200 rounded-full h-2">
 							<div
 								class="bg-pii-cyan h-2 rounded-full"
-								style="width: {(event.registrations / event.capacity) * 100}%"
+								style="width: {getOccupancyPercentage(
+									event.current_registrations,
+									event.max_capacity
+								)}%"
 							></div>
 						</div>
 					</div>

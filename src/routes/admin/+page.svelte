@@ -1,59 +1,43 @@
 <script lang="ts">
-	// Dashboard statistics - dummy data
-	const stats = [
-		{
-			label: 'Nadcházející akce',
-			value: 3,
-			change: '+1 tento měsíc',
-			icon: 'calendar',
-			color: 'pii-cyan'
-		},
-		{
-			label: 'Celkem registrací',
-			value: 85,
-			change: '+12 tento týden',
-			icon: 'users',
-			color: 'success'
-		},
-		{
-			label: 'Proběhlé akce',
-			value: 12,
-			change: 'Od začátku roku',
-			icon: 'check',
-			color: 'grey-600'
-		},
-		{
-			label: 'Průměrná účast',
-			value: '72%',
-			change: 'Z kapacity',
-			icon: 'chart',
-			color: 'warning'
-		}
-	];
+	import type { PageData } from './$types';
 
-	const upcomingEvents = [
-		{
-			title: 'Debata o budoucnosti Evropské unie',
-			date: '15. 12. 2025',
-			registrations: 35,
-			capacity: 50,
-			slug: 'debata-o-budoucnosti-eu'
-		},
-		{
-			title: 'Workshop: Digitalizace veřejné správy',
-			date: '20. 12. 2025',
-			registrations: 8,
-			capacity: 30,
-			slug: 'workshop-digitalizace'
-		},
-		{
-			title: 'Klimatická politika ČR v roce 2026',
-			date: '10. 1. 2026',
-			registrations: 42,
-			capacity: 80,
-			slug: 'klimaticka-politika-cr'
-		}
-	];
+	export let data: PageData;
+
+	// Transform API stats into dashboard cards
+	$: statsCards = data.stats
+		? [
+				{
+					label: 'Nadcházející akce',
+					value: data.stats.events.upcoming,
+					change: `${data.stats.events.published} publikovaných`,
+					icon: 'calendar',
+					color: 'pii-cyan'
+				},
+				{
+					label: 'Celkem registrací',
+					value: data.stats.registrations.confirmed,
+					change: `+${data.stats.registrations.recentWeek} tento týden`,
+					icon: 'users',
+					color: 'success'
+				},
+				{
+					label: 'Proběhlé akce',
+					value: data.stats.events.past,
+					change: 'Od začátku',
+					icon: 'check',
+					color: 'grey-600'
+				},
+				{
+					label: 'Vytížení kapacity',
+					value: `${data.stats.capacity.utilizationRate}%`,
+					change: `${data.stats.capacity.occupied}/${data.stats.capacity.total}`,
+					icon: 'chart',
+					color: 'warning'
+				}
+		  ]
+		: [];
+
+	$: upcomingEvents = data.stats?.topEvents || [];
 </script>
 
 <div class="space-y-8">
@@ -63,9 +47,19 @@
 		<p class="text-grey-600 font-sans">Přehled aktivit a statistik</p>
 	</div>
 
+	<!-- Error State -->
+	{#if data.error}
+		<div class="bg-error/10 border border-error text-error p-6 rounded-lg">
+			<p class="font-sans font-bold mb-2">⚠️ Chyba načítání dat</p>
+			<p class="font-sans text-sm">{data.error}</p>
+			<p class="font-sans text-sm mt-2">Zkontrolujte konfiguraci D1 databáze.</p>
+		</div>
+	{/if}
+
 	<!-- Stats Grid -->
-	<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-		{#each stats as stat}
+	{#if statsCards.length > 0}
+		<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+			{#each statsCards as stat}
 			<div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-{stat.color}">
 				<div class="flex items-start justify-between mb-4">
 					<div class="flex-1">
@@ -137,7 +131,8 @@
 				<p class="text-grey-600 font-sans text-sm">{stat.change}</p>
 			</div>
 		{/each}
-	</div>
+		</div>
+	{/if}
 
 	<!-- Quick Actions -->
 	<div class="bg-white rounded-lg shadow-md p-6">
@@ -158,55 +153,69 @@
 			</a>
 		</div>
 
-		<div class="space-y-4">
-			{#each upcomingEvents as event}
-				<div
-					class="flex flex-col md:flex-row md:items-center justify-between p-4 border border-grey-200 rounded-lg hover:border-pii-cyan transition-colors"
-				>
-					<div class="flex-1 mb-4 md:mb-0">
-						<h3 class="font-serif text-lg font-bold mb-1">{event.title}</h3>
-						<p class="text-grey-600 font-sans text-sm">{event.date}</p>
-					</div>
-
-					<div class="flex items-center gap-4">
-						<div class="text-center">
-							<p class="text-2xl font-bebas">{event.registrations}/{event.capacity}</p>
-							<p class="text-grey-600 font-sans text-xs uppercase">Registrací</p>
+		{#if upcomingEvents.length > 0}
+			<div class="space-y-4">
+				{#each upcomingEvents as event}
+					<div
+						class="flex flex-col md:flex-row md:items-center justify-between p-4 border border-grey-200 rounded-lg hover:border-pii-cyan transition-colors"
+					>
+						<div class="flex-1 mb-4 md:mb-0">
+							<h3 class="font-serif text-lg font-bold mb-1">{event.title}</h3>
+							<p class="text-grey-600 font-sans text-sm">
+								{new Date(event.event_date).toLocaleDateString('cs-CZ')}
+							</p>
 						</div>
 
-						<div class="flex gap-2">
-							<a
-								href="/admin/akce/{event.slug}"
-								class="px-4 py-2 bg-grey-100 hover:bg-grey-200 rounded font-sans text-sm transition-colors"
-							>
-								Upravit
-							</a>
-							<a
-								href="/admin/akce/{event.slug}/registrace"
-								class="px-4 py-2 bg-pii-cyan hover:bg-pii-cyan/90 text-white rounded font-sans text-sm transition-colors"
-							>
-								Registrace
-							</a>
+						<div class="flex items-center gap-4">
+							<div class="text-center">
+								<p class="text-2xl font-bebas">
+									{event.current_registrations}/{event.max_capacity || '∞'}
+								</p>
+								<p class="text-grey-600 font-sans text-xs uppercase">Registrací</p>
+							</div>
+
+							<div class="flex gap-2">
+								<a
+									href="/admin/akce/{event.id}"
+									class="px-4 py-2 bg-grey-100 hover:bg-grey-200 rounded font-sans text-sm transition-colors"
+								>
+									Upravit
+								</a>
+								<a
+									href="/admin/akce/{event.id}/registrace"
+									class="px-4 py-2 bg-pii-cyan hover:bg-pii-cyan/90 text-white rounded font-sans text-sm transition-colors"
+								>
+									Registrace
+								</a>
+							</div>
 						</div>
 					</div>
-				</div>
-			{/each}
-		</div>
+				{/each}
+			</div>
+		{:else}
+			<p class="text-grey-600 font-sans text-center py-8">Žádné nadcházející akce</p>
+		{/if}
 	</div>
 
 	<!-- Info Box -->
-	<div class="bg-info/10 border border-info rounded-lg p-6">
-		<h3 class="font-bebas text-xl uppercase mb-2 text-info">💡 Vítejte v admin panelu</h3>
+	<div class="bg-success/10 border border-success rounded-lg p-6">
+		<h3 class="font-bebas text-xl uppercase mb-2 text-success">✅ Dashboard funguje s API</h3>
 		<p class="text-grey-600 font-sans text-sm mb-4">
-			Toto je základní verze admin panelu. Aktuálně zobrazuje dummy data. V další fázi vývoje
-			budou připojeny:
+			Dashboard nyní zobrazuje reálná data z D1 databáze. Pokud vidíte chybu, zkontrolujte
+			konfiguraci databáze.
 		</p>
+		<p class="text-grey-600 font-sans text-sm mb-2 font-bold">Co už funguje:</p>
+		<ul class="text-grey-600 font-sans text-sm space-y-1 list-disc list-inside mb-4">
+			<li>✅ Reálné statistiky z databáze</li>
+			<li>✅ API pro správu akcí (CRUD operace)</li>
+			<li>✅ Seznam registrací na akce</li>
+		</ul>
+		<p class="text-grey-600 font-sans text-sm mb-2 font-bold">V další fázi:</p>
 		<ul class="text-grey-600 font-sans text-sm space-y-1 list-disc list-inside">
-			<li>API pro správu akcí (CRUD operace)</li>
 			<li>Autentizace a autorizace (JWT)</li>
 			<li>Upload obrázků do R2</li>
 			<li>Export registrací do CSV</li>
-			<li>Reálné statistiky z databáze</li>
+			<li>Email notifikace (Resend API)</li>
 		</ul>
 	</div>
 </div>
