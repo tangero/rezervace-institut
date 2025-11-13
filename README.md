@@ -70,14 +70,10 @@ cd rezervace-institut
 # Nainstaluj dependencies
 npm install
 
-# Vytvoř D1 databázi
-npx wrangler d1 create institutpi-events
-
-# Inicializuj databázové schema
-npx wrangler d1 execute institutpi-events --file=./database/schema.sql
-
-# (Volitelně) Naplň testovacími daty
-npx wrangler d1 execute institutpi-events --file=./database/seed.sql
+# Nastav D1 databázi (viz podrobný návod níže)
+# 📖 Kompletní instrukce: database/DATABASE-SETUP.md
+cd database && ./setup-db.sh
+# Nebo manuálně podle DATABASE-SETUP.md
 
 # Vytvoř R2 bucket
 npx wrangler r2 bucket create institutpi-images
@@ -156,9 +152,11 @@ npx wrangler deploy --config wrangler-api.toml
 │   ├── types.ts          # TypeScript types
 │   └── utils.ts          # Helper functions
 │
-├── database/             # Database files
-│   ├── schema.sql       # D1 schema
-│   └── seed.sql         # Test data
+├── database/              # Database files
+│   ├── schema.sql        # D1 schema
+│   ├── seed.sql          # Test data
+│   ├── setup-db.sh       # Automated setup script
+│   └── DATABASE-SETUP.md # Setup guide
 │
 ├── docs/                # Documentation
 │   └── PRD.md          # Product Requirements
@@ -233,6 +231,9 @@ npx wrangler types
 
 - [PRD (Product Requirements Document)](docs/PRD.md) - Kompletní specifikace
 - [Claude.md](Claude.md) - Přehled pro AI asistenta
+- [Database Setup](database/DATABASE-SETUP.md) - D1 databáze návod
+- [Deployment](DEPLOYMENT.md) - Cloudflare Pages deployment
+- [GitHub Actions](GITHUB-ACTIONS.md) - CI/CD setup
 - [Cloudflare Docs](https://developers.cloudflare.com/)
 - [SvelteKit Docs](https://kit.svelte.dev/)
 
