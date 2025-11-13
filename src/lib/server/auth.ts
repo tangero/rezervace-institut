@@ -3,7 +3,9 @@
 
 import { error } from '@sveltejs/kit';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'development-secret-change-in-production';
+// Note: In Cloudflare Workers, process.env is not available
+// Use a hardcoded secret for now. In production, use Cloudflare secrets/env bindings
+const JWT_SECRET = 'development-secret-change-in-production-use-cf-secrets';
 const TOKEN_EXPIRY = '24h'; // 24 hours
 
 interface JWTPayload {
@@ -15,21 +17,52 @@ interface JWTPayload {
 
 // Simple JWT implementation (for production, use jsonwebtoken library)
 // Using Web APIs only (compatible with Cloudflare Workers)
+// Note: btoa/atob are NOT available in Cloudflare Workers, so we implement our own
+
+const base64Chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+
 function arrayBufferToBase64(buffer: ArrayBuffer): string {
 	const bytes = new Uint8Array(buffer);
-	let binary = '';
-	for (let i = 0; i < bytes.length; i++) {
-		binary += String.fromCharCode(bytes[i]);
+	let result = '';
+	let i: number;
+
+	for (i = 0; i < bytes.length; i += 3) {
+		const byte1 = bytes[i];
+		const byte2 = i + 1 < bytes.length ? bytes[i + 1] : 0;
+		const byte3 = i + 2 < bytes.length ? bytes[i + 2] : 0;
+
+		const encoded1 = byte1 >> 2;
+		const encoded2 = ((byte1 & 0x03) << 4) | (byte2 >> 4);
+		const encoded3 = ((byte2 & 0x0f) << 2) | (byte3 >> 6);
+		const encoded4 = byte3 & 0x3f;
+
+		result += base64Chars[encoded1] + base64Chars[encoded2];
+		result += i + 1 < bytes.length ? base64Chars[encoded3] : '=';
+		result += i + 2 < bytes.length ? base64Chars[encoded4] : '=';
 	}
-	return btoa(binary);
+
+	return result;
 }
 
 function base64ToArrayBuffer(base64: string): ArrayBuffer {
-	const binary = atob(base64);
-	const bytes = new Uint8Array(binary.length);
-	for (let i = 0; i < binary.length; i++) {
-		bytes[i] = binary.charCodeAt(i);
+	// Remove padding
+	base64 = base64.replace(/=/g, '');
+
+	const length = base64.length;
+	const bytes = new Uint8Array((length * 3) / 4);
+	let byteIndex = 0;
+
+	for (let i = 0; i < length; i += 4) {
+		const encoded1 = base64Chars.indexOf(base64[i]);
+		const encoded2 = base64Chars.indexOf(base64[i + 1]);
+		const encoded3 = i + 2 < length ? base64Chars.indexOf(base64[i + 2]) : 0;
+		const encoded4 = i + 3 < length ? base64Chars.indexOf(base64[i + 3]) : 0;
+
+		bytes[byteIndex++] = (encoded1 << 2) | (encoded2 >> 4);
+		if (i + 2 < length) bytes[byteIndex++] = ((encoded2 & 0x0f) << 4) | (encoded3 >> 2);
+		if (i + 3 < length) bytes[byteIndex++] = ((encoded3 & 0x03) << 6) | encoded4;
 	}
+
 	return bytes.buffer;
 }
 
