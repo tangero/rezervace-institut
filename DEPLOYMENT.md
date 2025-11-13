@@ -1,8 +1,17 @@
 # Cloudflare Pages Deployment Guide
 
+## ⚠️ DŮLEŽITÉ: Build Configuration
+
+**Cloudflare Pages nepodporuje build command v `wrangler.toml`!**
+
+Build command **MUSÍ** být nakonfigurován v Cloudflare Pages Dashboard UI. Bez tohoto nastavení deployment selže s chybou:
+```
+Error: Output directory ".svelte-kit/cloudflare" not found.
+```
+
 ## Nastavení v Cloudflare Pages Dashboard
 
-Pro správný deployment je potřeba nastavit build konfiguraci v Cloudflare Pages dashboard:
+Následujte tyto kroky přesně:
 
 ### 1. Přihlaste se do Cloudflare Dashboard
 - Jděte na [dash.cloudflare.com](https://dash.cloudflare.com)
@@ -12,9 +21,11 @@ Pro správný deployment je potřeba nastavit build konfiguraci v Cloudflare Pag
 - Pokud projekt už existuje, klikněte na něj
 - Pokud ne, klikněte **Create a project** → **Connect to Git**
 
-### 3. Nakonfigurujte Build settings
+### 3. Nakonfigurujte Build Settings
 
-V sekci **Build settings** nastavte následující:
+**Cesta v UI:** `Pages → [Váš projekt] → Settings → Builds & deployments`
+
+Klikněte na **Configure Production deployments** (nebo **Edit configuration**) a nastavte:
 
 ```
 Production branch: main
