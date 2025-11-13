@@ -88,16 +88,31 @@ Aplikace běží na `http://localhost:5173`
 
 ### Build & Deploy
 
+Projekt používá dvě oddělené Cloudflare konfigurace:
+
+#### Frontend (Cloudflare Pages)
+
 ```bash
 # Build frontend
 npm run build
 
-# Deploy frontend na Cloudflare Pages
+# Deploy na Cloudflare Pages (automatický z GitHub)
+# Nebo manuálně:
 npx wrangler pages deploy .svelte-kit/cloudflare
-
-# Deploy Workers API
-npx wrangler deploy
 ```
+
+**Konfigurace:** `wrangler.toml` a `.pages.yaml`
+
+#### Backend API (Cloudflare Workers) - Volitelné
+
+```bash
+# Deploy Workers API (až bude potřeba)
+npx wrangler deploy --config wrangler-api.toml
+```
+
+**Konfigurace:** `wrangler-api.toml`
+
+> **Poznámka:** Pro MVP stačí pouze Pages deployment. Workers API se použije později pro pokročilé funkce (email queue, cron jobs).
 
 ## 📁 Struktura projektu
 

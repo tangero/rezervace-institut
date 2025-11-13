@@ -1,9 +1,10 @@
-# Cloudflare Workers Configuration
+# Cloudflare Pages Configuration for Institut Pí
+# Frontend SvelteKit application
+
 name = "rezervace-institut"
 compatibility_date = "2024-01-01"
-main = "workers/index.ts"
 
-# Cloudflare Pages Configuration
+# Pages build output directory
 pages_build_output_dir = ".svelte-kit/cloudflare"
 
 # Environment variables (non-sensitive)
@@ -24,29 +25,10 @@ database_id = "to-be-created" # Replace with actual database ID after creation
 binding = "IMAGES"
 bucket_name = "institutpi-images"
 
-# Queue for email sending
-[[queues.producers]]
-binding = "EMAIL_QUEUE"
-queue = "email-queue"
+# Preview environment configuration
+[env.preview]
+name = "rezervace-institut-preview"
 
-[[queues.consumers]]
-queue = "email-queue"
-max_batch_size = 10
-max_batch_timeout = 30
-
-# Cron triggers for reminders
-[triggers]
-crons = ["0 * * * *"] # Run every hour
-
-# Routes
-[route]
-pattern = "akce.institutpi.cz/api/*"
-zone_name = "institutpi.cz"
-
-# Development configuration
-[env.development]
-name = "rezervace-institut-dev"
-
-# Production configuration
+# Production environment configuration
 [env.production]
-name = "rezervace-institut-prod"
+name = "rezervace-institut-production"
