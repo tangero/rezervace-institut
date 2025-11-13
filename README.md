@@ -8,30 +8,30 @@ Moderní, mobile-first webová aplikace pro správu akcí, registrací a plateb.
 
 **Živá doména:** [akce.institutpi.cz](https://akce.institutpi.cz)
 
-## ⚠️ KRITICKÉ: Cloudflare Pages Setup
+## 🚀 Deployment
 
-**Build command NELZE nastavit v kódu!** Musí být nakonfigurován v Cloudflare Pages Dashboard UI.
+### Metoda 1: GitHub Actions (Doporučeno) ⭐
 
-**Bez tohoto nastavení deployment selže s chybou:**
-```
-Error: Output directory ".svelte-kit/cloudflare" not found.
-```
+Projekt používá **GitHub Actions** pro automatický build a deploy. Není nutné konfigurovat build v Cloudflare Dashboard!
 
-### Co nastavit v Dashboard:
+**Nastavení (jednorázově):**
+1. Vytvořte Cloudflare API Token
+2. Přidejte GitHub Secrets: `CLOUDFLARE_API_TOKEN` a `CLOUDFLARE_ACCOUNT_ID`
+3. Push do `main` → automatický deploy ✨
+
+📖 **Kompletní instrukce:** [GITHUB-ACTIONS.md](GITHUB-ACTIONS.md)
+
+### Metoda 2: Cloudflare Git Integration (Alternativa)
+
+Pokud nechcete používat GitHub Actions:
+
+⚠️ **Build command MUSÍ být nastaven v Cloudflare Dashboard UI:**
 ```
 Build command: npm run build
 Build output directory: .svelte-kit/cloudflare
-Environment variable: NODE_VERSION = 18
 ```
 
-### Kde nastavit:
-```
-Cloudflare Dashboard → Pages → Settings → Builds & deployments
-→ Configure Production deployments
-```
-
-📖 **Quick setup:** [QUICKSTART.md](QUICKSTART.md)
-📖 **Detailní guide:** [DEPLOYMENT.md](DEPLOYMENT.md)
+📖 **Dashboard setup:** [QUICKSTART.md](QUICKSTART.md) | [DEPLOYMENT.md](DEPLOYMENT.md)
 
 ## 🛠️ Technologie
 
