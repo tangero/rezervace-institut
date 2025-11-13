@@ -8,6 +8,19 @@ Moderní, mobile-first webová aplikace pro správu akcí, registrací a plateb.
 
 **Živá doména:** [akce.institutpi.cz](https://akce.institutpi.cz)
 
+## ⚠️ Důležité: Cloudflare Pages Setup
+
+Pro správný deployment je **nutné** nastavit build konfiguraci v Cloudflare Pages dashboard:
+
+**Build Settings:**
+```
+Build command: npm run build
+Build output directory: .svelte-kit/cloudflare
+Node version: 18
+```
+
+📖 **Detailní instrukce:** viz [DEPLOYMENT.md](DEPLOYMENT.md)
+
 ## 🛠️ Technologie
 
 ### Frontend
