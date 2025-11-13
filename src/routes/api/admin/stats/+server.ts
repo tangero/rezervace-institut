@@ -1,12 +1,12 @@
 // API endpoint: GET /api/admin/stats - Dashboard statistics
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
+import { requireAuth } from '$lib/server/auth';
 
-// TODO: Add JWT authentication middleware
-
-export const GET: RequestHandler = async ({ platform }) => {
+export const GET: RequestHandler = async ({ request, platform }) => {
 	try {
-		// TODO: Verify JWT token
+		// Verify authentication
+		await requireAuth(request);
 
 		const db = platform?.env?.DB;
 

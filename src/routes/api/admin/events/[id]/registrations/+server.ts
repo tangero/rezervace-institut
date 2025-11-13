@@ -1,12 +1,12 @@
 // API endpoint: GET /api/admin/events/:id/registrations - Get registrations for event
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
+import { requireAuth } from '$lib/server/auth';
 
-// TODO: Add JWT authentication middleware
-
-export const GET: RequestHandler = async ({ params, platform, url }) => {
+export const GET: RequestHandler = async ({ request, params, platform, url }) => {
 	try {
-		// TODO: Verify JWT token
+		// Verify authentication
+		await requireAuth(request);
 
 		const { id } = params;
 		const includeUnconfirmed = url.searchParams.get('include_unconfirmed') === 'true';

@@ -4,12 +4,12 @@
 // DELETE /api/admin/events/:id - Delete event
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
+import { requireAuth } from '$lib/server/auth';
 
-// TODO: Add JWT authentication middleware
-
-export const GET: RequestHandler = async ({ params, platform }) => {
+export const GET: RequestHandler = async ({ request, params, platform }) => {
 	try {
-		// TODO: Verify JWT token
+		// Verify authentication
+		await requireAuth(request);
 
 		const { id } = params;
 		const db = platform?.env?.DB;
@@ -55,7 +55,8 @@ export const GET: RequestHandler = async ({ params, platform }) => {
 
 export const PUT: RequestHandler = async ({ params, request, platform }) => {
 	try {
-		// TODO: Verify JWT token
+		// Verify authentication
+		await requireAuth(request);
 
 		const { id } = params;
 		const db = platform?.env?.DB;
@@ -160,9 +161,10 @@ export const PUT: RequestHandler = async ({ params, request, platform }) => {
 	}
 };
 
-export const DELETE: RequestHandler = async ({ params, platform }) => {
+export const DELETE: RequestHandler = async ({ request, params, platform }) => {
 	try {
-		// TODO: Verify JWT token
+		// Verify authentication
+		await requireAuth(request);
 
 		const { id } = params;
 		const db = platform?.env?.DB;

@@ -2,9 +2,7 @@
 // POST /api/admin/events - Create new event
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-
-// TODO: Add JWT authentication middleware
-// For now, this endpoint is unprotected - add auth in next phase
+import { requireAuth } from '$lib/server/auth';
 
 // Generate unique event ID
 function generateEventId(): string {
@@ -21,11 +19,10 @@ function generateSlug(title: string): string {
 		.replace(/^-+|-+$/g, ''); // Remove leading/trailing hyphens
 }
 
-export const GET: RequestHandler = async ({ platform, url }) => {
+export const GET: RequestHandler = async ({ request, platform, url }) => {
 	try {
-		// TODO: Verify JWT token here
-		// const token = url.searchParams.get('token') || request.headers.get('Authorization');
-		// if (!verifyToken(token)) return json({ error: 'Unauthorized' }, { status: 401 });
+		// Verify authentication
+		await requireAuth(request);
 
 		const limit = parseInt(url.searchParams.get('limit') || '100');
 		const offset = parseInt(url.searchParams.get('offset') || '0');
@@ -88,9 +85,8 @@ export const GET: RequestHandler = async ({ platform, url }) => {
 
 export const POST: RequestHandler = async ({ request, platform }) => {
 	try {
-		// TODO: Verify JWT token here
-		// const token = request.headers.get('Authorization');
-		// if (!verifyToken(token)) return json({ error: 'Unauthorized' }, { status: 401 });
+		// Verify authentication
+		await requireAuth(request);
 
 		const db = platform?.env?.DB;
 

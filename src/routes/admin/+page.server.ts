@@ -1,10 +1,17 @@
 // Server-side data loading for admin dashboard
 import type { PageServerLoad } from './$types';
 
-export const load: PageServerLoad = async ({ fetch }) => {
+export const load: PageServerLoad = async ({ fetch, request }) => {
 	try {
+		// Forward auth header from request
+		const authHeader = request.headers.get('Authorization');
+		const headers: Record<string, string> = {};
+		if (authHeader) {
+			headers['Authorization'] = authHeader;
+		}
+
 		// Fetch statistics from admin API
-		const response = await fetch('/api/admin/stats');
+		const response = await fetch('/api/admin/stats', { headers });
 
 		if (!response.ok) {
 			console.error('Failed to fetch admin stats:', response.statusText);
