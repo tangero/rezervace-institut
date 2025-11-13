@@ -19,14 +19,36 @@
 		e.preventDefault();
 		registering = true;
 		registrationMessage = '';
+		registrationSuccess = false;
 
-		// Simulate API call - will be replaced with actual API
-		setTimeout(() => {
+		try {
+			const response = await fetch('/api/register', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({
+					email,
+					eventId: event.id
+				})
+			});
+
+			const data = await response.json();
+
+			if (response.ok && data.success) {
+				registrationSuccess = true;
+				registrationMessage = data.message;
+				email = '';
+			} else {
+				registrationMessage = data.error || 'Registrace se nezdařila. Zkuste to prosím znovu.';
+			}
+		} catch (err) {
+			console.error('Registration error:', err);
+			registrationMessage =
+				'Nastala chyba při registraci. Zkontrolujte připojení k internetu a zkuste to znovu.';
+		} finally {
 			registering = false;
-			registrationSuccess = true;
-			registrationMessage = 'Registrace byla odeslána! Zkontrolujte svůj email pro potvrzení.';
-			email = '';
-		}, 1000);
+		}
 	}
 
 	function addToCalendar() {
