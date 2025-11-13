@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { page } from '$app/stores';
-
-	// For now, no auth - will add JWT authentication later
-	// const isAuthenticated = true;
+	import { goto } from '$app/navigation';
+	import { browser } from '$app/environment';
+	import { onMount } from 'svelte';
 
 	const navItems = [
 		{ href: '/admin', label: 'Dashboard', icon: 'home' },
@@ -11,10 +11,45 @@
 	];
 
 	let mobileMenuOpen = false;
+	let userEmail = '';
 
 	function toggleMobileMenu() {
 		mobileMenuOpen = !mobileMenuOpen;
 	}
+
+	function handleLogout() {
+		if (browser) {
+			localStorage.removeItem('admin_token');
+			localStorage.removeItem('admin_user');
+		}
+		goto('/admin/login');
+	}
+
+	// Check authentication on mount
+	onMount(() => {
+		// Allow access to login page
+		if ($page.url.pathname === '/admin/login') {
+			return;
+		}
+
+		// Check if user is authenticated
+		if (browser) {
+			const token = localStorage.getItem('admin_token');
+			const user = localStorage.getItem('admin_user');
+
+			if (!token) {
+				// Not authenticated, redirect to login
+				goto('/admin/login');
+			} else if (user) {
+				try {
+					const userData = JSON.parse(user);
+					userEmail = userData.email;
+				} catch (e) {
+					console.error('Failed to parse user data');
+				}
+			}
+		}
+	});
 </script>
 
 <svelte:head>
@@ -49,7 +84,12 @@
 						</a>
 					{/each}
 
-					<a href="/" class="btn-outline text-xs py-2 px-4"> Zpět na web </a>
+					{#if userEmail}
+						<span class="text-grey-400 text-sm font-sans">{userEmail}</span>
+					{/if}
+					<button on:click={handleLogout} class="btn-outline text-xs py-2 px-4">
+						Odhlásit se
+					</button>
 				</nav>
 
 				<!-- Mobile Menu Button -->
