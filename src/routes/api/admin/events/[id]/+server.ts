@@ -24,7 +24,10 @@ export const GET: RequestHandler = async ({ request, params, platform }) => {
 			);
 		}
 
-		const event = await db.prepare('SELECT * FROM events WHERE id = ?').bind(id).first();
+		// Support both ID (numeric) and slug (string)
+		const isNumericId = !isNaN(Number(id));
+		const query = isNumericId ? 'SELECT * FROM events WHERE id = ?' : 'SELECT * FROM events WHERE slug = ?';
+		const event = await db.prepare(query).bind(id).first();
 
 		if (!event) {
 			return json(
@@ -71,8 +74,12 @@ export const PUT: RequestHandler = async ({ params, request, platform }) => {
 			);
 		}
 
+		// Support both ID (numeric) and slug (string)
+		const isNumericId = !isNaN(Number(id));
+		const whereClause = isNumericId ? 'WHERE id = ?' : 'WHERE slug = ?';
+
 		// Check if event exists
-		const existingEvent = await db.prepare('SELECT id FROM events WHERE id = ?').bind(id).first();
+		const existingEvent = await db.prepare(`SELECT id FROM events ${whereClause}`).bind(id).first();
 
 		if (!existingEvent) {
 			return json(
@@ -136,10 +143,10 @@ export const PUT: RequestHandler = async ({ params, request, platform }) => {
 			);
 		}
 
-		// Add event ID at the end for WHERE clause
+		// Add event ID/slug at the end for WHERE clause
 		params.push(id);
 
-		const query = `UPDATE events SET ${updates.join(', ')} WHERE id = ?`;
+		const query = `UPDATE events SET ${updates.join(', ')} ${whereClause}`;
 
 		await db.prepare(query).bind(...params).run();
 
@@ -179,8 +186,12 @@ export const DELETE: RequestHandler = async ({ request, params, platform }) => {
 			);
 		}
 
+		// Support both ID (numeric) and slug (string)
+		const isNumericId = !isNaN(Number(id));
+		const whereClause = isNumericId ? 'WHERE id = ?' : 'WHERE slug = ?';
+
 		// Check if event exists
-		const existingEvent = await db.prepare('SELECT id FROM events WHERE id = ?').bind(id).first();
+		const existingEvent = await db.prepare(`SELECT id FROM events ${whereClause}`).bind(id).first();
 
 		if (!existingEvent) {
 			return json(
@@ -192,7 +203,7 @@ export const DELETE: RequestHandler = async ({ request, params, platform }) => {
 		}
 
 		// Delete event (CASCADE will also delete registrations)
-		await db.prepare('DELETE FROM events WHERE id = ?').bind(id).run();
+		await db.prepare(`DELETE FROM events ${whereClause}`).bind(id).run();
 
 		console.log(`✅ Deleted event: ${id}`);
 

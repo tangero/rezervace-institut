@@ -36,7 +36,7 @@
 
 	onMount(async () => {
 		try {
-			const response = await authenticatedFetch(`/api/admin/events/${data.eventId}`);
+			const response = await authenticatedFetch(`/api/admin/events/${data.eventSlug}`);
 
 			if (!response.ok) {
 				error = 'Nepodařilo se načíst akci';
@@ -108,7 +108,7 @@
 				is_paid: formData.is_paid ? 1 : 0
 			};
 
-			const response = await authenticatedFetch(`/api/admin/events/${data.eventId}`, {
+			const response = await authenticatedFetch(`/api/admin/events/${data.eventSlug}`, {
 				method: 'PUT',
 				headers: {
 					'Content-Type': 'application/json'
@@ -149,7 +149,7 @@
 		error = '';
 
 		try {
-			const response = await authenticatedFetch(`/api/admin/events/${data.eventId}`, {
+			const response = await authenticatedFetch(`/api/admin/events/${data.eventSlug}`, {
 				method: 'DELETE'
 			});
 
