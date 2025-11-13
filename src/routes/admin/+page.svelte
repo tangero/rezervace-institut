@@ -176,13 +176,13 @@
 
 							<div class="flex gap-2">
 								<a
-									href="/admin/akce/{event.id}"
+									href="/admin/akce/{event.slug}"
 									class="px-4 py-2 bg-grey-100 hover:bg-grey-200 rounded font-sans text-sm transition-colors"
 								>
 									Upravit
 								</a>
 								<a
-									href="/admin/akce/{event.id}/registrace"
+									href="/admin/akce/{event.slug}/registrace"
 									class="px-4 py-2 bg-pii-cyan hover:bg-pii-cyan/90 text-white rounded font-sans text-sm transition-colors"
 								>
 									Registrace

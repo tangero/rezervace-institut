@@ -23,11 +23,13 @@ export const GET: RequestHandler = async ({ request, params, platform, url }) =>
 			);
 		}
 
-		// Check if event exists
-		const event = await db
-			.prepare('SELECT id, title, slug FROM events WHERE id = ?')
-			.bind(id)
-			.first();
+		// Support both ID (numeric) and slug (string)
+		const isNumericId = !isNaN(Number(id));
+		const eventQuery = isNumericId
+			? 'SELECT id, title, slug FROM events WHERE id = ?'
+			: 'SELECT id, title, slug FROM events WHERE slug = ?';
+
+		const event = await db.prepare(eventQuery).bind(id).first();
 
 		if (!event) {
 			return json(
@@ -58,17 +60,18 @@ export const GET: RequestHandler = async ({ request, params, platform, url }) =>
 
 		query += ' ORDER BY registered_at DESC';
 
-		const { results } = await db.prepare(query).bind(id).all();
+		// Use event.id (numeric) for querying registrations
+		const { results } = await db.prepare(query).bind(event.id).all();
 
 		// Get counts
 		const confirmedCount = await db
 			.prepare('SELECT COUNT(*) as count FROM registrations WHERE event_id = ? AND is_confirmed = 1')
-			.bind(id)
+			.bind(event.id)
 			.first();
 
 		const pendingCount = await db
 			.prepare('SELECT COUNT(*) as count FROM registrations WHERE event_id = ? AND is_confirmed = 0')
-			.bind(id)
+			.bind(event.id)
 			.first();
 
 		return json({
