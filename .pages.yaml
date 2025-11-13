@@ -1,0 +1,12 @@
+# Cloudflare Pages Build Configuration
+# https://developers.cloudflare.com/pages/platform/build-configuration/
+
+# Build command to run
+build:
+  command: npm run build
+
+# Output directory of build
+build_output_dir: .svelte-kit/cloudflare
+
+# Node version
+NODE_VERSION: 18

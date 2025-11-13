@@ -1,5 +1,5 @@
 <script lang="ts">
-	import EventCard from '$components/EventCard.svelte';
+	import EventCard from '$lib/components/EventCard.svelte';
 
 	// Dummy data - will be replaced with actual API call
 	const archiveEvents = [
