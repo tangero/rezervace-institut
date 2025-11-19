@@ -8,6 +8,31 @@ Moderní, mobile-first webová aplikace pro správu akcí, registrací a plateb.
 
 **Živá doména:** [akce.institutpi.cz](https://akce.institutpi.cz)
 
+## 🚀 Deployment
+
+### Metoda 1: GitHub Actions (Doporučeno) ⭐
+
+Projekt používá **GitHub Actions** pro automatický build a deploy. Není nutné konfigurovat build v Cloudflare Dashboard!
+
+**Nastavení (jednorázově):**
+1. Vytvořte Cloudflare API Token
+2. Přidejte GitHub Secrets: `CLOUDFLARE_API_TOKEN` a `CLOUDFLARE_ACCOUNT_ID`
+3. Push do `main` → automatický deploy ✨
+
+📖 **Kompletní instrukce:** [GITHUB-ACTIONS.md](GITHUB-ACTIONS.md)
+
+### Metoda 2: Cloudflare Git Integration (Alternativa)
+
+Pokud nechcete používat GitHub Actions:
+
+⚠️ **Build command MUSÍ být nastaven v Cloudflare Dashboard UI:**
+```
+Build command: npm run build
+Build output directory: .svelte-kit/cloudflare
+```
+
+📖 **Dashboard setup:** [QUICKSTART.md](QUICKSTART.md) | [DEPLOYMENT.md](DEPLOYMENT.md)
+
 ## 🛠️ Technologie
 
 ### Frontend
@@ -45,14 +70,10 @@ cd rezervace-institut
 # Nainstaluj dependencies
 npm install
 
-# Vytvoř D1 databázi
-npx wrangler d1 create institutpi-events
-
-# Inicializuj databázové schema
-npx wrangler d1 execute institutpi-events --file=./database/schema.sql
-
-# (Volitelně) Naplň testovacími daty
-npx wrangler d1 execute institutpi-events --file=./database/seed.sql
+# Nastav D1 databázi (viz podrobný návod níže)
+# 📖 Kompletní instrukce: database/DATABASE-SETUP.md
+cd database && ./setup-db.sh
+# Nebo manuálně podle DATABASE-SETUP.md
 
 # Vytvoř R2 bucket
 npx wrangler r2 bucket create institutpi-images
@@ -88,16 +109,31 @@ Aplikace běží na `http://localhost:5173`
 
 ### Build & Deploy
 
+Projekt používá dvě oddělené Cloudflare konfigurace:
+
+#### Frontend (Cloudflare Pages)
+
 ```bash
 # Build frontend
 npm run build
 
-# Deploy frontend na Cloudflare Pages
+# Deploy na Cloudflare Pages (automatický z GitHub)
+# Nebo manuálně:
 npx wrangler pages deploy .svelte-kit/cloudflare
-
-# Deploy Workers API
-npx wrangler deploy
 ```
+
+**Konfigurace:** `wrangler.toml` a `.pages.yaml`
+
+#### Backend API (Cloudflare Workers) - Volitelné
+
+```bash
+# Deploy Workers API (až bude potřeba)
+npx wrangler deploy --config wrangler-api.toml
+```
+
+**Konfigurace:** `wrangler-api.toml`
+
+> **Poznámka:** Pro MVP stačí pouze Pages deployment. Workers API se použije později pro pokročilé funkce (email queue, cron jobs).
 
 ## 📁 Struktura projektu
 
@@ -116,9 +152,11 @@ npx wrangler deploy
 │   ├── types.ts          # TypeScript types
 │   └── utils.ts          # Helper functions
 │
-├── database/             # Database files
-│   ├── schema.sql       # D1 schema
-│   └── seed.sql         # Test data
+├── database/              # Database files
+│   ├── schema.sql        # D1 schema
+│   ├── seed.sql          # Test data
+│   ├── setup-db.sh       # Automated setup script
+│   └── DATABASE-SETUP.md # Setup guide
 │
 ├── docs/                # Documentation
 │   └── PRD.md          # Product Requirements
@@ -193,6 +231,9 @@ npx wrangler types
 
 - [PRD (Product Requirements Document)](docs/PRD.md) - Kompletní specifikace
 - [Claude.md](Claude.md) - Přehled pro AI asistenta
+- [Database Setup](database/DATABASE-SETUP.md) - D1 databáze návod
+- [Deployment](DEPLOYMENT.md) - Cloudflare Pages deployment
+- [GitHub Actions](GITHUB-ACTIONS.md) - CI/CD setup
 - [Cloudflare Docs](https://developers.cloudflare.com/)
 - [SvelteKit Docs](https://kit.svelte.dev/)
 

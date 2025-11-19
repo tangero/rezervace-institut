@@ -1,23 +1,11 @@
 <script lang="ts">
 	import EventCard from '$lib/components/EventCard.svelte';
+	import type { PageData } from './$types';
 
-	// Dummy data - will be replaced with actual API call
-	const archiveEvents = [
-		{
-			slug: 'archiv-vzdelavani-21-stoleti',
-			title: 'Vzdělávání v 21. století',
-			short_description:
-				'Již proběhlá akce o inovacích ve vzdělávání a přípravě mladých lidí na výzvy budoucnosti.',
-			event_date: '2024-11-01',
-			start_time: '16:00',
-			venue_name: 'Pedagogická fakulta UK',
-			venue_address: 'Školní 123, Praha 6',
-			image_url: 'https://placehold.co/800x450/4B5563/FFFFFF?text=Vzd%C4%9Bl%C3%A1v%C3%A1n%C3%AD',
-			image_alt: 'Vzdělávání v 21. století',
-			max_capacity: 100,
-			current_registrations: 85
-		}
-	];
+	export let data: PageData;
+
+	// Archive events are now loaded from the API via +page.server.ts
+	$: archiveEvents = data.events || [];
 </script>
 
 <svelte:head>
