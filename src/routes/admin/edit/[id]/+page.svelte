@@ -2,6 +2,7 @@
 	import { page } from '$app/stores';
 	import { goto } from '$app/navigation';
 	import { onMount } from 'svelte';
+	import { PUBLIC_ADMIN_TOKEN } from '$env/static/public';
 	import type { Event } from '../../../../../workers/types';
 
 	let event: Partial<Event> = {};
@@ -10,7 +11,7 @@
 	let error: string | null = null;
 	const eventId = $page.params.id;
 
-	const ADMIN_TOKEN = 'super-secret-dev-token'; // Dev only
+	const ADMIN_TOKEN = PUBLIC_ADMIN_TOKEN;
 
 	onMount(async () => {
 		try {

@@ -1,15 +1,13 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { PUBLIC_ADMIN_TOKEN } from '$env/static/public';
 	import type { Event } from '../../../workers/types';
 
 	let events: Partial<Event>[] = [];
 	let isLoading = true;
 	let error: string | null = null;
 
-	// IMPORTANT: This is for development only. In a real app, this should be handled
-	// by a secure authentication flow (e.g., login page) and the token stored
-	// in a secure way (e.g., HttpOnly cookie).
-	const ADMIN_TOKEN = 'super-secret-dev-token';
+	const ADMIN_TOKEN = PUBLIC_ADMIN_TOKEN;
 
 	onMount(async () => {
 		try {
@@ -98,7 +96,13 @@
 							<td>
 								<a href={`/admin/edit/${event.id}`} class="font-bold link link-hover">{event.title}</a>
 							</td>
-							<td>{new Date(event.event_date!).toLocaleDateString('cs-CZ')}</td>
+							<td>
+								{#if event.event_date}
+									{new Date(event.event_date).toLocaleDateString('cs-CZ')}
+								{:else}
+									N/A
+								{/if}
+							</td>
 							<td>
 								<span
 									class="badge"

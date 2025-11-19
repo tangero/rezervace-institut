@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { PUBLIC_ADMIN_TOKEN } from '$env/static/public';
 	import type { Event } from '../../../../workers/types';
 
 	let event: Partial<Event> = {
@@ -20,7 +21,7 @@
 
 	let isLoading = false;
 	let error: string | null = null;
-	const ADMIN_TOKEN = 'super-secret-dev-token'; // Dev only
+	const ADMIN_TOKEN = PUBLIC_ADMIN_TOKEN;
 
 	async function handleSubmit() {
 		isLoading = true;
