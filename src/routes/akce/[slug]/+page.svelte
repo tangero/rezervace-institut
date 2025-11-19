@@ -44,8 +44,8 @@
 	<title>{data.title}</title>
 	<meta name="description" content={data.description} />
 
-	{@const event = data.event}
-	{#if event}
+	{#if data.event}
+		{@const event = data.event}
 		{@const startDateTime = new Date(`${event.event_date}T${event.start_time}`)}
 		{@const endDateTime = new Date(startDateTime.getTime() + event.duration_minutes * 60000)}
 

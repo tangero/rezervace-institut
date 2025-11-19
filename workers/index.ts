@@ -14,6 +14,7 @@ import {
 	updateEvent,
 	deleteEvent
 } from './api/events';
+import { getAdminStats } from './api/stats';
 import { registerForEvent, confirmRegistration, cancelRegistration } from './api/registrations';
 
 // Initialize router
@@ -39,7 +40,9 @@ const adminUpdateEvent = authMiddleware(async (request, params) => updateEvent(r
 const adminDeleteEvent = authMiddleware(async (request, params) => deleteEvent(request, (request as any).env as Env, params.id));
 const adminGetAllEvents = authMiddleware(async (request) => getAllEventsForAdmin(request, (request as any).env as Env));
 const adminGetEventById = authMiddleware(async (request, params) => getEventByIdForAdmin(request, (request as any).env as Env, params.id));
+const adminGetStats = authMiddleware(async (request) => getAdminStats(request, (request as any).env as Env));
 
+router.get('/api/admin/stats', adminGetStats);
 router.get('/api/admin/events', adminGetAllEvents);
 router.get('/api/admin/events/:id', adminGetEventById);
 router.post('/api/admin/events', adminCreateEvent);
