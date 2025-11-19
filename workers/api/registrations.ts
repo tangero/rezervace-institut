@@ -67,15 +67,16 @@ export async function registerForEvent(
 		// Create registration
 		const registrationId = generateId('reg');
 		const confirmationToken = generateToken(32);
+		const cancellationToken = generateToken(32);
 
 		const insertQuery = `
 			INSERT INTO registrations (
-				id, event_id, email, confirmation_token, is_confirmed, payment_status
-			) VALUES (?, ?, ?, ?, 0, 'pending')
+				id, event_id, email, confirmation_token, cancellation_token, is_confirmed, payment_status
+			) VALUES (?, ?, ?, ?, ?, 0, 'pending')
 		`;
 
 		await env.DB.prepare(insertQuery)
-			.bind(registrationId, eventId, email, confirmationToken)
+			.bind(registrationId, eventId, email, confirmationToken, cancellationToken)
 			.run();
 
 		// Queue confirmation email
@@ -90,6 +91,7 @@ export async function registerForEvent(
 				event_id: eventId,
 				email,
 				confirmation_token: confirmationToken,
+				cancellation_token: cancellationToken,
 				is_confirmed: false,
 				payment_status: 'pending',
 				registered_at: new Date().toISOString()
@@ -172,5 +174,53 @@ export async function confirmRegistration(
 	} catch (error) {
 		console.error('Error confirming registration:', error);
 		return errorResponse('Nepodařilo se potvrdit registraci', 500);
+	}
+}
+
+/**
+ * GET /api/registrations/cancel/:token
+ * Cancel a registration via token
+ */
+export async function cancelRegistration(
+	request: Request,
+	env: Env,
+	token: string
+): Promise<Response> {
+	try {
+		const registration = await env.DB.prepare(
+			'SELECT * FROM registrations WHERE cancellation_token = ?'
+		).bind(token).first<Registration>();
+
+		if (!registration) {
+			return new Response('<h1>❌ Neplatný odkaz pro zrušení</h1><p>Tento odkaz je neplatný nebo již byl použit.</p>', {
+				status: 404,
+				headers: { 'Content-Type': 'text/html; charset=utf-8' }
+			});
+		}
+
+		if (registration.payment_status === 'cancelled') {
+			return new Response('<h1>✅ Rezervace již byla zrušena</h1><p>Vaše rezervace byla úspěšně zrušena již dříve.</p>', {
+				status: 200,
+				headers: { 'Content-Type': 'text/html; charset=utf-8' }
+			});
+		}
+
+		// Update registration to cancelled
+		// The DB trigger will handle decrementing the event's current_registrations count
+		await env.DB.prepare(
+			"UPDATE registrations SET payment_status = 'cancelled' WHERE id = ?"
+		).bind(registration.id).run();
+		
+		return new Response('<h1>✅ Rezervace zrušena</h1><p>Vaše rezervace byla úspěšně zrušena. Děkujeme.</p>', {
+			status: 200,
+			headers: { 'Content-Type': 'text/html; charset=utf-8' }
+		});
+
+	} catch (error) {
+		console.error('Error cancelling registration:', error);
+		return new Response('<h1>❌ Chyba</h1><p>Během zpracování vašeho požadavku nastala chyba. Zkuste to prosím později.</p>', {
+			status: 500,
+			headers: { 'Content-Type': 'text/html; charset=utf-8' }
+		});
 	}
 }

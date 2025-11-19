@@ -40,6 +40,7 @@ CREATE TABLE IF NOT EXISTS registrations (
   event_id TEXT NOT NULL,
   email TEXT NOT NULL,
   confirmation_token TEXT UNIQUE NOT NULL,
+  cancellation_token TEXT UNIQUE NOT NULL,
   is_confirmed BOOLEAN DEFAULT 0,
   payment_status TEXT DEFAULT 'pending', -- pending, paid, cancelled
   payment_confirmed_at TEXT,
@@ -53,6 +54,7 @@ CREATE TABLE IF NOT EXISTS registrations (
 CREATE INDEX IF NOT EXISTS idx_registrations_event ON registrations(event_id);
 CREATE INDEX IF NOT EXISTS idx_registrations_email ON registrations(email);
 CREATE INDEX IF NOT EXISTS idx_registrations_token ON registrations(confirmation_token);
+CREATE INDEX IF NOT EXISTS idx_registrations_cancellation_token ON registrations(cancellation_token);
 
 -- Reminder settings table
 CREATE TABLE IF NOT EXISTS reminder_settings (

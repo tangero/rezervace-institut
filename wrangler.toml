@@ -46,7 +46,15 @@ zone_name = "institutpi.cz"
 # Development configuration
 [env.development]
 name = "rezervace-institut-dev"
+vars = { ADMIN_SECRET = "super-secret-dev-token" }
 
 # Production configuration
 [env.production]
 name = "rezervace-institut-prod"
+# For production, set the secret using:
+# wrangler secret put ADMIN_SECRET
+# wrangler secret put RESEND_API_KEY
+
+[env.development]
+name = "rezervace-institut-dev"
+vars = { ADMIN_SECRET = "super-secret-dev-token", RESEND_API_KEY = "super-secret-resend-key-dev" }

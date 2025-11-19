@@ -187,3 +187,30 @@ export function checkRateLimit(ip: string, maxRequests: number = 10, windowMs: n
 	record.count++;
 	return true;
 }
+
+/**
+ * Middleware to protect admin routes
+ * It wraps a route handler and checks for a valid bearer token
+ */
+import type { Env } from './types';
+import type { RouteHandler } from './router';
+
+export function authMiddleware(handler: RouteHandler): RouteHandler {
+	return async (request: Request, params: Record<string, string>) => {
+		const env = (request as any).env as Env;
+		const authHeader = request.headers.get('Authorization');
+
+		if (!authHeader || !authHeader.startsWith('Bearer ')) {
+			return errorResponse('Missing or invalid Authorization header', 401);
+		}
+
+		const token = authHeader.substring(7); // "Bearer ".length
+
+		if (!env.ADMIN_SECRET || token !== env.ADMIN_SECRET) {
+			return errorResponse('Invalid credentials', 403);
+		}
+
+		// If authenticated, call the original handler
+		return handler(request, params);
+	};
+}

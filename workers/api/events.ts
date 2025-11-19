@@ -1,7 +1,7 @@
 // Events API endpoints
 
 import type { Env, Event, EventsListResponse } from '../types';
-import { successResponse, errorResponse, isEventPast } from '../utils';
+import { successResponse, errorResponse, isEventPast, createSlug, generateId } from '../utils';
 
 /**
  * GET /api/events
@@ -195,5 +195,164 @@ END:VCALENDAR`;
 	} catch (error) {
 		console.error('Error generating calendar:', error);
 		return errorResponse('Failed to generate calendar', 500);
+	}
+}
+
+/*
+ * ADMIN API Endpoints
+ */
+
+/**
+ * GET /api/admin/events/:id
+ * Get a single event by ID for the admin panel
+ */
+export async function getEventByIdForAdmin(request: Request, env: Env, eventId: string): Promise<Response> {
+	try {
+		const event = await env.DB.prepare('SELECT * FROM events WHERE id = ?').bind(eventId).first<Event>();
+
+		if (!event) {
+			return errorResponse('Event not found', 404);
+		}
+
+		return successResponse(event);
+	} catch (error) {
+		console.error('Error fetching event for admin:', error);
+		return errorResponse('Failed to fetch event for admin', 500);
+	}
+}
+
+/**
+ * GET /api/admin/events
+ * Get all events for the admin panel (including drafts)
+ */
+export async function getAllEventsForAdmin(request: Request, env: Env): Promise<Response> {
+	try {
+		const { results } = await env.DB.prepare(
+			'SELECT id, slug, title, event_date, status, current_registrations, max_capacity FROM events ORDER BY event_date DESC'
+		).all<Partial<Event>>();
+
+		return successResponse(results || []);
+	} catch (error) {
+		console.error('Error fetching all events for admin:', error);
+		return errorResponse('Failed to fetch events for admin', 500);
+	}
+}
+
+/**
+ * POST /api/admin/events
+ * Create a new event
+ */
+export async function createEvent(request: Request, env: Env): Promise<Response> {
+	try {
+		const body = await request.json<Partial<Event>>().catch(() => ({}));
+
+		// Basic validation
+		if (!body.title || !body.event_date || !body.start_time) {
+			return errorResponse('Missing required fields: title, event_date, start_time', 400);
+		}
+
+		const id = generateId('evt');
+		const slug = createSlug(body.title);
+
+		const query = `
+			INSERT INTO events (id, slug, title, short_description, long_description, program, image_url, image_alt, venue_address, venue_name, event_date, start_time, duration_minutes, guest_names, is_paid, price_czk, max_capacity, status)
+			VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+			RETURNING *;
+		`;
+
+		const newEvent = await env.DB.prepare(query)
+			.bind(
+				id,
+				slug,
+				body.title,
+				body.short_description || '',
+				body.long_description,
+				body.program,
+				body.image_url,
+				body.image_alt,
+				body.venue_address || 'TBD',
+				body.venue_name,
+				body.event_date,
+				body.start_time,
+				body.duration_minutes || 0,
+				body.guest_names,
+				body.is_paid || 0,
+				body.price_czk || 0,
+				body.max_capacity,
+				body.status || 'draft'
+			)
+			.first<Event>();
+
+		return successResponse(newEvent, 'Event created successfully');
+	} catch (error) {
+		console.error('Error creating event:', error);
+		// @ts-ignore
+		if (error.message?.includes('UNIQUE constraint failed')) {
+			return errorResponse('Event with this title already exists', 409);
+		}
+		return errorResponse('Failed to create event', 500);
+	}
+}
+
+/**
+ * PUT /api/admin/events/:id
+ * Update an existing event
+ */
+export async function updateEvent(request: Request, env: Env, eventId: string): Promise<Response> {
+	try {
+		const body = await request.json<Partial<Event>>().catch(() => ({}));
+
+		if (!body.title) {
+			return errorResponse('Title is a required field', 400);
+		}
+
+		const slug = createSlug(body.title);
+
+		// Dynamically build the SET part of the query
+		const fieldsToUpdate = { ...body, slug, updated_at: new Date().toISOString() };
+		delete fieldsToUpdate.id; // Cannot change id
+		delete fieldsToUpdate.created_at; // Cannot change created_at
+
+		const fieldNames = Object.keys(fieldsToUpdate);
+		const setClause = fieldNames.map((name) => `${name} = ?`).join(', ');
+		const fieldValues = Object.values(fieldsToUpdate);
+
+		const query = `UPDATE events SET ${setClause} WHERE id = ? RETURNING *;`;
+
+		const updatedEvent = await env.DB.prepare(query)
+			.bind(...fieldValues, eventId)
+			.first<Event>();
+
+		if (!updatedEvent) {
+			return errorResponse('Event not found or failed to update', 404);
+		}
+
+		return successResponse(updatedEvent, 'Event updated successfully');
+	} catch (error) {
+		console.error('Error updating event:', error);
+		// @ts-ignore
+		if (error.message?.includes('UNIQUE constraint failed')) {
+			return errorResponse('Another event with this title already exists', 409);
+		}
+		return errorResponse('Failed to update event', 500);
+	}
+}
+
+/**
+ * DELETE /api/admin/events/:id
+ * Delete an event
+ */
+export async function deleteEvent(request: Request, env: Env, eventId: string): Promise<Response> {
+	try {
+		const { success } = await env.DB.prepare('DELETE FROM events WHERE id = ?').bind(eventId).run();
+
+		if (!success) {
+			return errorResponse('Failed to delete event, it might not exist', 404);
+		}
+
+		return successResponse({ id: eventId }, 'Event deleted successfully');
+	} catch (error) {
+		console.error('Error deleting event:', error);
+		return errorResponse('Failed to delete event', 500);
 	}
 }
